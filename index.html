@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<title>記念メダル</title>
+<meta name="theme-color" content="#0b6b6f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="記念メダル">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="site-head">
+ <div class="site-inner">
+  <a class="site-title" href="#list">記念メダル 販売情報</a>
+  <span class="site-badge">未審査・全国調査の記録</span>
+ </div>
+</header>
+<main class="site-inner" id="public-root"><p class="muted">読み込み中…</p></main>
+<footer class="site-foot site-inner">
+ <div id="foot-info" hidden>
+  <p>全国Excel（664fd207dd8e10d53535a0ddc16c2fe9cb475ca3d896b4fc4e8ac1459fb248cd.xlsx）の調査記録を、取込と同じ読み取りで表示しています。審査・承認の前の記録です。お出かけ前に施設へご確認ください。</p>
+  <p class="snapshot-note">作成：<span id="built"></span>。Excelの内容は作成時点のまま変わりません。</p>
+ </div>
+ <p><button type="button" class="btn small" id="lock" hidden>ロックする（合言葉を忘れさせる）</button></p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

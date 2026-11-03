@@ -1,0 +1,190 @@
+/* 公開ページ専用のスタイル。管理画面（style.css）とは分ける。 */
+:root{--ink:#1c2b36;--muted:#5d6d79;--line:#dbe3e9;--bg:#f4f6f8;--paper:#fff;--accent:#0b6b6f;
+ --ok:#11683f;--ok-bg:#e5f4ec;--past:#8a5a12;--past-bg:#fdf1dc;--info:#1d5aa6;--info-bg:#e6effa;--pause:#a24a12;--pause-bg:#fde9dc;--end:#4f5b64;--end-bg:#eceff2;
+ --warn:#8a4a12;--warn-bg:#fff4e0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.75 "Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid #1f7ab8;outline-offset:2px}
+.site-inner{max-width:1080px;margin:0 auto;padding:0 20px}
+.site-head{background:var(--paper);border-bottom:1px solid var(--line)}
+.site-head .site-inner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:14px;padding-bottom:14px}
+.site-title{font-weight:800;font-size:18px;color:var(--ink);text-decoration:none}
+.site-badge{font-size:12px;background:var(--warn-bg);color:var(--warn);padding:2px 8px;border-radius:4px}
+.site-foot{color:var(--muted);font-size:13px;padding-top:20px;padding-bottom:40px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+h1{font-size:26px;line-height:1.4;margin:24px 0 4px}
+h2{font-size:19px;margin:0}
+
+/* 施設一覧 */
+.lead{color:var(--muted);margin:0 0 16px}
+.filters{display:grid;grid-template-columns:1fr 160px;gap:8px;margin-bottom:16px}
+.filters input,.filters select{font:inherit;padding:8px 10px;border:1px solid #b5c3ce;border-radius:8px;background:#fff;width:100%}
+.facility-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;list-style:none;padding:0;margin:0}
+.facility-card{display:block;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink);text-decoration:none;height:100%}
+.facility-card:hover{border-color:var(--accent);box-shadow:0 2px 10px #1c2b3614}
+.facility-card .name{font-weight:700;font-size:16px;display:block}
+.facility-card .meta{color:var(--muted);font-size:13px;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.pref{background:var(--bg);border-radius:4px;padding:0 6px}
+.more{margin-top:12px;width:100%;font:inherit;padding:8px;border:1px solid var(--line);background:var(--paper);border-radius:8px;cursor:pointer}
+
+/* 施設ページ */
+.crumb{font-size:13px;margin-top:18px}
+.facility-head{margin-bottom:8px}
+.facility-head .meta{color:var(--muted);font-size:13px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.tag{font-size:13px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.tag strong{font-weight:700}
+details.guide{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin:12px 0 4px;font-size:13px}
+details.guide summary{cursor:pointer;color:var(--accent);font-weight:600}
+.guide dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:10px 0 4px;align-items:start}
+.guide dd{margin:0;color:var(--muted)}
+.point{margin:22px 0 0}
+.point-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:6px;margin-bottom:12px}
+.point-head .channel{font-size:13px;color:var(--muted)}
+.medal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.medal-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.medal-card.is-ended{background:#fafbfc}
+.medal-top{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:center}
+.emblem{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:20px;color:#5a4300;
+ background:radial-gradient(circle at 35% 30%,#fff6c9,#e3c45a 55%,#b48a1c);box-shadow:inset 0 0 0 3px #f3dc8a,inset 0 0 0 5px #b48a1c55}
+.emblem.silver{color:#3d474e;background:radial-gradient(circle at 35% 30%,#ffffff,#cfd6db 55%,#8e9aa3);box-shadow:inset 0 0 0 3px #e8edf0,inset 0 0 0 5px #8e9aa355}
+.emblem.bronze{color:#4a2c12;background:radial-gradient(circle at 35% 30%,#ffe2c4,#c98b55 55%,#8d5a2b);box-shadow:inset 0 0 0 3px #e9b88c,inset 0 0 0 5px #8d5a2b55}
+.emblem.blue{color:#0f3557;background:radial-gradient(circle at 35% 30%,#e6f2ff,#7fb1e3 55%,#3a76b5);box-shadow:inset 0 0 0 3px #b8d6f3,inset 0 0 0 5px #3a76b555}
+.emblem.plain{color:#3d474e;background:radial-gradient(circle at 35% 30%,#ffffff,#dfe5ea 60%,#aab6bf)}
+.medal-name{font-weight:700;font-size:16px;line-height:1.4}
+.medal-sub{color:var(--muted);font-size:13px}
+.state{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;border-radius:8px;padding:4px 10px;width:fit-content}
+.state::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.state.recent_confirmation{color:var(--ok);background:var(--ok-bg)}
+.state.historical_confirmation{color:var(--past);background:var(--past-bg)}
+.state.official_listing{color:var(--info);background:var(--info-bg)}
+.state.paused{color:var(--pause);background:var(--pause-bg)}
+.state.ended_confirmed,.state.none{color:var(--end);background:var(--end-bg)}
+.state-text{font-size:14px;margin:-4px 0 0}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:14px;border-top:1px solid var(--line);padding-top:8px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0}
+.price{font-size:20px;font-weight:800;letter-spacing:.02em}
+.price small{font-size:12px;font-weight:400;color:var(--muted);margin-left:4px}
+.warning{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600}
+.fresh{font-size:12px;color:var(--muted)}
+.notice-box{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:13px;margin-top:20px}
+.empty{background:var(--paper);border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;color:var(--muted)}
+
+@media(max-width:640px){
+ .site-inner{padding:0 14px}
+ h1{font-size:22px}
+ .filters{grid-template-columns:1fr}
+ .medal-grid,.facility-grid{grid-template-columns:1fr}
+ .guide dl{grid-template-columns:1fr}
+}
+
+/* ===== claude.ai の写し用の追加 ===== */
+:root{--field:#fff;--field-line:#b5c3ce;--ended:#fafbfc;--focus:#1f7ab8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e3e9ee;--muted:#9fb0bc;--line:#2e3c46;--bg:#121a20;--paper:#1a242c;--accent:#5cc6c9;
+ --ok:#7fd6a5;--ok-bg:#163527;--past:#e8bd6f;--past-bg:#3a2c12;--info:#8db9f0;--info-bg:#17304f;--pause:#f0a676;--pause-bg:#3d2414;--end:#b3bec6;--end-bg:#2a333a;
+ --warn:#f0bf7a;--warn-bg:#3a2a12;--field:#0f161b;--field-line:#3b4a55;--ended:#161e24;--focus:#6fb5e6;color-scheme:dark}}
+:root[data-theme="dark"]{
+ --ink:#e3e9ee;--muted:#9fb0bc;--line:#2e3c46;--bg:#121a20;--paper:#1a242c;--accent:#5cc6c9;
+ --ok:#7fd6a5;--ok-bg:#163527;--past:#e8bd6f;--past-bg:#3a2c12;--info:#8db9f0;--info-bg:#17304f;--pause:#f0a676;--pause-bg:#3d2414;--end:#b3bec6;--end-bg:#2a333a;
+ --warn:#f0bf7a;--warn-bg:#3a2a12;--field:#0f161b;--field-line:#3b4a55;--ended:#161e24;--focus:#6fb5e6;color-scheme:dark}
+:focus-visible{outline-color:var(--focus)}
+.filters input,.filters select{background:var(--field);border-color:var(--field-line);color:var(--ink)}
+.medal-card.is-ended{background:var(--ended)}
+.more{color:var(--ink)}
+.site-inner,.site-head .site-inner{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.snapshot-note{font-size:12px;color:var(--muted)}
+
+/* ===== 未審査の確認用ページの追加 ===== */
+.unreviewed{display:block;margin:16px 0 0}
+.tabs{display:flex;gap:6px;margin:16px 0 4px;flex-wrap:wrap}
+.tabs a{padding:6px 14px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink);background:var(--paper);font-size:14px}
+.tabs a[aria-current="page"]{border-color:var(--accent);color:var(--accent);font-weight:700}
+.pref-head{font-size:16px;margin:22px 0 8px;display:flex;gap:8px;align-items:baseline}
+.pref-head span{font-size:13px;color:var(--muted);font-weight:400}
+.facility-card .state{font-size:12px;padding:2px 8px;margin-top:6px}
+.facility-card .status-line{font-size:13px;color:var(--muted);margin-top:4px;display:block}
+.block{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:14px 0;min-width:0}
+.block h2{font-size:16px;margin:0 0 8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.ev{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ev li{border-top:1px solid var(--line);padding-top:10px;font-size:14px;min-width:0}
+.ev li:first-child{border-top:0;padding-top:0}
+.ev .ev-kind{font-weight:700}
+.ev .ev-date{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.links{display:flex;flex-direction:column;gap:2px;font-size:13px;margin-top:4px;min-width:0}
+.links a{overflow-wrap:anywhere}
+.counts{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.counts strong{color:var(--ink);font-size:15px}
+@media(max-width:640px){.kv{grid-template-columns:1fr}.kv dd{margin-bottom:6px}}
+/* ===== コレクション ===== */
+:root{--shelf:#eef2f4;--stage:#1d2329;--danger:#a3261d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--shelf:#141c22;--stage:#0b0f12;--danger:#f08a80}}
+:root[data-theme="dark"]{--shelf:#141c22;--stage:#0b0f12;--danger:#f08a80}
+.badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.owned{font-size:12px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:1px 8px;margin-top:6px}
+.btn{font:inherit;font-size:14px;padding:7px 14px;border-radius:8px;border:1px solid var(--field-line);background:var(--paper);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:700}
+.btn.small{font-size:12px;padding:3px 10px}
+.btn.quiet{border-color:transparent;color:var(--muted)}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn:disabled{opacity:.5;cursor:default}
+.mine-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.mine-head h2{margin:0}
+.medal-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;background:var(--shelf);border-radius:12px;padding:14px}
+.medal-tile{margin:0;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;min-width:0}
+.medal-photo{width:100%;max-width:180px;aspect-ratio:1;border-radius:50%;object-fit:cover;filter:drop-shadow(0 4px 8px #0004)}
+.medal-photo.square{border-radius:8%}
+.medal-photo.missing{display:grid;place-items:center;background:var(--end-bg);color:var(--muted);font-size:12px;filter:none}
+.medal-tile figcaption{display:flex;flex-direction:column;gap:1px;font-size:13px;min-width:0;overflow-wrap:anywhere}
+.tile-actions{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.no-scroll{overflow:hidden}
+.crop-overlay{position:fixed;inset:0;z-index:20;background:#000a;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
+ padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.crop-panel{background:var(--paper);color:var(--ink);border-radius:14px;padding:14px;width:100%;max-width:860px;display:flex;flex-direction:column;gap:10px}
+.crop-title{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.crop-pick{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.crop-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px;align-items:start}
+.crop-stage{width:100%;max-width:460px;aspect-ratio:1;border-radius:10px;touch-action:none;cursor:grab;display:block;margin:0 auto}
+.crop-stage:active{cursor:grabbing}
+.crop-controls{display:flex;flex-direction:column;gap:10px;min-width:0}
+.segs{display:flex}
+.seg{font:inherit;font-size:13px;padding:5px 14px;border:1px solid var(--field-line);background:var(--paper);color:var(--ink);cursor:pointer}
+.seg:first-child{border-radius:8px 0 0 8px}.seg:last-child{border-radius:0 8px 8px 0;border-left:0}
+.seg[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:700}
+.sliders,.fields{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center;font-size:13px}
+.sliders input{width:100%;accent-color:var(--accent)}
+.fields input,.fields textarea{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--field-line);border-radius:8px;background:var(--field);color:var(--ink);width:100%;min-width:0}
+.crop-msg{margin:0;font-size:13px;color:var(--muted);min-height:1.2em}
+.crop-actions{display:flex;justify-content:flex-end;gap:8px}
+.flip{all:unset;cursor:pointer;position:relative;display:block;width:100%;max-width:180px;border-radius:50%}
+.flip:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.flip-face{display:block}
+.flip.turning .flip-face{animation:turn .24s ease-in-out}
+@keyframes turn{50%{transform:scaleX(.05)}}
+@media (prefers-reduced-motion:reduce){.flip.turning .flip-face{animation:none}}
+.side-tag{position:absolute;right:2px;bottom:2px;font-size:11px;font-weight:700;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:0 7px}
+.side-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.side-thumbs{display:flex;gap:8px}
+.side-thumbs figure{margin:0;display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted)}
+.side-thumb{width:48px;height:48px;border-radius:50%;background:var(--shelf)}
+.seg:disabled{opacity:.6;cursor:default}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:640px){.crop-body{grid-template-columns:1fr}.medal-shelf{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ===== ホーム画面アプリの追加 ===== */
+body{padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
+.site-head{padding-top:env(safe-area-inset-top,0px)}
+.login{max-width:440px;margin:28px auto}
+.login h1{font-size:20px;margin:4px 0 8px}
+.login .fields{margin:12px 0}
+.login input{font-size:16px}
+.site-foot .btn{margin-top:4px}
+.site-foot p{overflow-wrap:anywhere}
+.backup h2{font-size:16px;margin:4px 0}
+[hidden]{display:none!important}
