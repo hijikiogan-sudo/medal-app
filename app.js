@@ -113,7 +113,7 @@ const links=us=>us?.length?h('div',{class:'links'},...us.map(link)):null;
 const kv=pairs=>{const p=pairs.filter(([,v])=>v!=null&&v!=='');return p.length?h('dl',{class:'kv'},...p.flatMap(([k,v])=>[h('dt',{text:k}),h('dd',{},v)])):null};
 const fmt=s=>new Date(s).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
 const banner=()=>h('div',{class:'warning unreviewed',role:'note',text:'未審査：全国Excel（v8）の調査記録をそのまま表示しています。審査・承認の前なので、販売中・在庫を保証するものではありません。'});
-const tabs=cur=>h('nav',{class:'tabs','aria-label':'表示の切替'},h('a',{href:'#list','aria-current':cur==='list'?'page':null,text:'施設候補 '+D.candidates.length}),h('a',{href:'#past','aria-current':cur==='past'?'page':null,text:'過去品・除外 '+(D.past.length+D.exclusions.length)}),COL.db?h('a',{href:'#mine','aria-current':cur==='mine'?'page':null,text:'コレクション '+COL.items.length}):null);
+const tabs=cur=>h('nav',{class:'tabs','aria-label':'表示の切替'},h('a',{href:'#list','aria-current':cur==='list'?'page':null,text:'施設候補 '+D.candidates.length}),h('a',{href:'#past','aria-current':cur==='past'?'page':null,text:'過去品・除外 '+(D.past.length+D.exclusions.length)}));
 const state={query:'',pref:'',tag:'',pastQuery:'',pastPref:''};
 const prefSelect=(val,on)=>{const s=h('select',{'aria-label':'都道府県'},h('option',{value:'',text:'全国'}),...PREFS.map((p,i)=>h('option',{value:String(i+1).padStart(2,'0'),text:p})));s.value=val;s.addEventListener('change',()=>on(s.value));return s};
 const byPref=(items)=>{const m=new Map();for(const it of [...items].sort((a,b)=>(a.pref??'99').localeCompare(b.pref??'99'))){const k=it.pref??'';if(!m.has(k))m.set(k,[]);m.get(k).push(it)}return m};
@@ -188,7 +188,7 @@ function showPast(){
 }
 
 let current='';
-function route(hash,keep){current=hash||'';document.title='記念メダルの施設候補';const m=/^#c-(.+)$/.exec(current);if(m)showCandidate(decodeURIComponent(m[1]));else if(current==='#past')showPast();else if(current==='#mine')showMine();else showList();if(!keep)window.scrollTo(0,0)}
+function routeSearch(hash,keep){current=hash||'';document.title='記念メダルの施設候補';const m=/^#c-(.+)$/.exec(current);if(m)showCandidate(decodeURIComponent(m[1]));else if(current==='#past')showPast();else if(current==='#mine')showMine();else showList();if(!keep)window.scrollTo(0,0)}
 // コレクションが変わったら、今の画面をスクロール位置のまま描き直す（入力中の欄があれば待つ）
 function rerender(){const a=document.activeElement;if(a&&root.contains(a)&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))return;route(current,true)}
 document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a)return;e.preventDefault();route(a.getAttribute('href'))});
@@ -450,6 +450,171 @@ function openCropper({candidate=null,existing=null}){
  draw();
 }
 initCollection();
+
+// ===== コレクター向けの画面（ホーム画面アプリだけ） =====
+// 主役は自分のメダルを眺めること。棚（#shelf）・メダルの詳細（#m-<id>）・図鑑（#zukan, #zukan-<県コード>）・追加（#add）。
+// 施設候補の一覧と詳細（#list, #past, #c-<id>）は「探す」として第13工程の画面をそのまま使う。
+// build_pwa.mjs が本体（h・put・D・COL・medalImage・openCropper など）と collection.js の後ろに埋め込み、元の route を routeSearch に改名する。
+const TABBAR=[['#shelf','棚','ti-layout-grid'],['#zukan','図鑑','ti-map'],['#add','追加','ti-camera-plus'],['#list','探す','ti-search']];
+const sectionOf=hash=>/^#(m-|shelf|mine)/.test(hash)||!hash?'#shelf':/^#zukan/.test(hash)?'#zukan':hash==='#add'?'#add':'#list';
+const ICONS={
+ 'ti-layout-grid':'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+ 'ti-map':'M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3zM9 4v13M15 7v13',
+ 'ti-camera-plus':'M5 7h1a2 2 0 0 0 2-2 1 1 0 0 1 1-1h6a1 1 0 0 1 1 1 2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2M12 10v6M9 13h6',
+ 'ti-search':'M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0-14 0M21 21l-6-6'};
+function icon(name){const ns='http://www.w3.org/2000/svg';const s=document.createElementNS(ns,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');s.setAttribute('class','tab-icon');
+ const p=document.createElementNS(ns,'path');p.setAttribute('d',ICONS[name]);s.append(p);return s}
+const tabbar=h('nav',{class:'tabbar','aria-label':'画面の切替'},...TABBAR.map(([href,label,ic])=>h('a',{href,'data-tab':href},icon(ic),h('span',{text:label}))));
+document.body.append(tabbar);
+document.body.classList.add('has-tabbar');
+function markTab(hash){const s=sectionOf(hash);for(const a of tabbar.querySelectorAll('a'))a.toggleAttribute('aria-current',a.dataset.tab===s)}
+
+const medalName=m=>m.label||m.candidate_name||'名前なし';
+const candOf=m=>m.candidate_id?D.candidates.find(c=>c.id===m.candidate_id)??null:null;
+const monthKey=s=>String(s??'').slice(0,7);
+const ownedIds=()=>new Set(COL.items.map(m=>m.candidate_id).filter(Boolean));
+
+// 棚に並べる1枚（タップで詳細へ）
+function shelfItem(m){
+ const sq=m.shape==='square'?' square':'';
+ const img=h('img',{src:photoUrl(m.photo),alt:'',loading:'lazy',class:'case-photo'+sq});
+ img.addEventListener('error',()=>img.replaceWith(h('span',{class:'case-photo missing'+sq})));
+ return h('a',{class:'case-item',href:'#m-'+m.id},h('span',{class:'case-medal'},img,m.back?h('span',{class:'case-two',title:'表と裏あり',text:'表裏'}):null),h('span',{class:'case-name',text:medalName(m)}));
+}
+
+function showShelf(){
+ document.title='わたしの棚｜記念メダル';
+ const items=COL.items;
+ const now=new Date(),thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+ const prefs=new Set(items.map(m=>m.pref).filter(Boolean));
+ const month=items.filter(m=>monthKey(m.acquired||m.created_at)===thisMonth).length;
+ const sort=state.shelfSort??'new';
+ const sorted=[...items].sort(sort==='pref'?(a,b)=>(a.pref||'99').localeCompare(b.pref||'99')||String(b.created_at).localeCompare(String(a.created_at)):(a,b)=>String(b.acquired||b.created_at).localeCompare(String(a.acquired||a.created_at)));
+ const seg=(v,label)=>h('button',{type:'button',class:'seg','aria-pressed':String(sort===v),text:label,onclick:()=>{state.shelfSort=v;showShelf()}});
+ let body;
+ if(!COL.loaded)body=collectionStatus();
+ else if(!items.length)body=h('div',{class:'case case-empty'},
+  h('span',{class:'case-medal ghost','aria-hidden':'true'}),
+  h('p',{class:'case-lead',text:'最初の1枚を棚に飾りましょう'}),
+  h('p',{class:'case-sub',text:'メダルを撮ると、縁に合わせて丸く切り抜いて並べます。'}),
+  h('a',{class:'btn primary',href:'#add',text:'メダルを追加'}));
+ else if(sort==='pref'){
+  const groups=new Map();for(const m of sorted){const k=m.pref??'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(m)}
+  body=[...groups].map(([p,list])=>h('section',{class:'case'},h('h2',{class:'case-head'},prefName(p),h('span',{text:list.length+'枚'})),h('div',{class:'case-grid'},...list.map(shelfItem))));
+ }else body=h('section',{class:'case'},h('div',{class:'case-grid'},...sorted.map(shelfItem)));
+ put(root,
+  h('div',{class:'shelf-top'},h('h1',{text:'わたしの棚'}),
+   h('div',{class:'stats'},...[[items.length,'枚'],[prefs.size,'都道府県'],[ownedIds().size,'施設'],[month,'今月']].map(([n,l])=>h('div',{class:'stat'},h('strong',{text:String(n)}),h('span',{text:l}))))),
+  items.length?h('div',{class:'segs',role:'group','aria-label':'並べ方'},seg('new','新しい順'),seg('pref','都道府県ごと')):null,
+  body);
+}
+
+// ===== メダルの詳細 =====
+function evidenceSummary(c){
+ const t=tagOf(c);
+ const ev=D.evidence.filter(e=>e.ids.includes(c.id));
+ const latest=[...ev].sort((a,b)=>String(b.dates[0]?.value??'').localeCompare(String(a.dates[0]?.value??'')))[0];
+ return h('section',{class:'block info'},
+  h('h2',{text:'この施設の情報'}),
+  h('div',{class:'state '+t.k,text:t.label}),
+  kv([['施設',c.name],['所在地',[prefName(c.pref),c.muni].filter(Boolean).join(' ')],['現在の状況',c.status],['根拠の時点',c.date],['根拠の記録',ev.length+'件']]),
+  latest?h('div',{class:'ev-one'},h('div',{},h('span',{class:'ev-kind',text:latest.kind??'種類なし'}),' ',h('span',{class:'ev-date',text:latest.dates.map(d=>d.label+' '+d.value).join('　')})),
+   latest.content?h('div',{class:'small',text:latest.content}):null,links(latest.urls)):null,
+  h('p',{class:'muted small',text:'未審査：全国Excelの調査記録をそのまま表示しています。販売中・在庫を保証するものではありません。'}),
+  h('a',{class:'btn',href:'#c-'+c.id,text:'根拠をすべて見る'}));
+}
+function showMedal(id){
+ const m=COL.items.find(x=>x.id===id);
+ if(!m){if(COL.loaded){history.replaceState(null,'','#shelf');showShelf()}else put(root,collectionStatus());return}
+ document.title=medalName(m)+'｜記念メダル';
+ const c=candOf(m);
+ const acts=h('div',{class:'hero-actions'});
+ const idle=()=>put(acts,COL.assets?[h('button',{type:'button',class:'btn',text:m.back?'裏を撮り直す':'裏を追加',onclick:()=>openCropper({existing:m})}),h('button',{type:'button',class:'btn quiet',text:'削除',onclick:arm})]:null);
+ const arm=()=>put(acts,h('button',{type:'button',class:'btn danger',text:'削除する（元に戻せません）',onclick:()=>removeMedal(m,acts)}),h('button',{type:'button',class:'btn',text:'やめる',onclick:idle}));
+ idle();
+ const siblings=c?COL.items.filter(x=>x.candidate_id===c.id&&x.id!==m.id):[];
+ put(root,
+  h('p',{class:'crumb'},h('a',{href:'#shelf',text:'‹ 棚'})),
+  h('div',{class:'hero'},h('div',{class:'hero-medal'},medalImage(m)),m.back?h('p',{class:'hero-hint',text:'タップで裏返す'}):null,
+   h('h1',{class:'hero-name',text:medalName(m)}),
+   h('p',{class:'hero-meta',text:[c?.name&&c.name!==medalName(m)?c.name:(!c&&m.candidate_name&&m.candidate_name!==medalName(m)?m.candidate_name:null),prefName(m.pref)||null,m.acquired?m.acquired+' 入手':null].filter(Boolean).join('・')}),
+   m.note?h('p',{class:'hero-note',text:m.note}):null,acts),
+  c?evidenceSummary(c):h('p',{class:'muted small',text:'候補にない施設のメダルです。施設の調査記録とは結び付いていません。'}),
+  siblings.length?h('section',{class:'case'},h('h2',{class:'case-head'},'同じ施設のメダル',h('span',{text:siblings.length+'枚'})),h('div',{class:'case-grid'},...siblings.map(shelfItem))):null);
+}
+
+// ===== 図鑑 =====
+function zukanCounts(){
+ const owned=ownedIds(),by=new Map();
+ for(const c of D.candidates){const k=c.pref??'';if(!by.has(k))by.set(k,{all:0,got:0});const r=by.get(k);r.all++;if(owned.has(c.id))r.got++}
+ return by;
+}
+const bar=(got,all)=>h('span',{class:'bar','aria-hidden':'true'},h('span',{style:'width:'+(all?Math.round(got/all*100):0)+'%'}));
+function showZukan(){
+ document.title='図鑑｜記念メダル';
+ const by=zukanCounts();
+ const got=[...by.values()].reduce((s,r)=>s+r.got,0),all=D.candidates.length;
+ const done=[...by].filter(([k,r])=>k&&r.got>0).length;
+ put(root,h('h1',{text:'図鑑'}),
+  h('div',{class:'zukan-total'},h('strong',{text:got+' / '+all}),h('span',{text:'施設候補のうち持っている施設'}),bar(got,all),h('span',{class:'muted small',text:done+'都道府県で1枚以上'})),
+  h('ul',{class:'pref-list'},...[...by].sort((a,b)=>(a[0]||'99').localeCompare(b[0]||'99')).map(([k,r])=>h('li',{},
+   h('a',{href:'#zukan-'+(k||'none'),class:r.got?'has':''},h('span',{class:'pref-name',text:prefName(k)}),bar(r.got,r.all),h('span',{class:'pref-count',text:r.got+' / '+r.all}))))),
+  h('p',{class:'muted small',text:'施設候補は審査前の全国調査の記録です。1施設に1枠として数えています。'}));
+}
+function showZukanPref(code){
+ const k=code==='none'?null:code;
+ const list=D.candidates.filter(c=>(c.pref??null)===k);
+ document.title=prefName(k)+'の図鑑｜記念メダル';
+ const owned=new Map();for(const m of COL.items)if(m.candidate_id&&!owned.has(m.candidate_id))owned.set(m.candidate_id,m);
+ const got=list.filter(c=>owned.has(c.id)).length;
+ const slot=c=>{const m=owned.get(c.id);const t=tagOf(c);
+  if(m){const sq=m.shape==='square'?' square':'';const img=h('img',{src:photoUrl(m.photo),alt:'',loading:'lazy',class:'case-photo'+sq});img.addEventListener('error',()=>img.replaceWith(h('span',{class:'case-photo missing'+sq})));
+   return h('a',{class:'slot got',href:'#m-'+m.id},h('span',{class:'case-medal'},img),h('span',{class:'slot-name',text:c.name}))}
+  return h('a',{class:'slot',href:'#c-'+c.id},h('span',{class:'case-medal empty'+(t.k==='ended_confirmed'?' ended':'')},h('span',{class:'slot-q',text:t.k==='ended_confirmed'?'終了?':'?'})),h('span',{class:'slot-name',text:c.name}))};
+ const sorted=[...list].sort((a,b)=>Number(owned.has(b.id))-Number(owned.has(a.id))||String(a.muni??'').localeCompare(String(b.muni??''),'ja'));
+ put(root,h('p',{class:'crumb'},h('a',{href:'#zukan',text:'‹ 図鑑'})),
+  h('h1',{text:prefName(k)+'の図鑑'}),
+  h('div',{class:'zukan-total'},h('strong',{text:got+' / '+list.length}),h('span',{text:'集めた施設'}),bar(got,list.length)),
+  h('section',{class:'case'},h('div',{class:'case-grid slots'},...sorted.map(slot))),
+  h('p',{class:'muted small',text:'点線の枠はまだ持っていない施設です。タップすると、売っている場所の記録と根拠を見られます。「終了?」は終了・休止の記録がある施設です。'}));
+}
+
+// ===== 追加（どの施設のメダルかを選んで撮る） =====
+function showAdd(){
+ document.title='メダルを追加｜記念メダル';
+ const q=h('input',{type:'search',placeholder:'施設名・市町村で探す','aria-label':'施設名・市町村で探す',value:state.addQuery??''});
+ const out=h('ul',{class:'pick-list'});
+ const draw=()=>{const s=(state.addQuery??'').trim();
+  const hit=s?D.candidates.filter(c=>(c.name+(c.muni??'')+prefName(c.pref)).includes(s)).slice(0,40):[];
+  put(out,...hit.map(c=>h('li',{},h('button',{type:'button',class:'pick',onclick:()=>{state.addFrom=COL.items.length;openCropper({candidate:c})}},h('span',{class:'name',text:c.name}),h('span',{class:'muted small',text:[prefName(c.pref),c.muni].filter(Boolean).join(' ')}),mine(c.id).length?h('span',{class:'owned',text:'所持 '+mine(c.id).length}):null))),
+   s&&!hit.length?h('li',{class:'muted small',text:'見つかりません。下の「候補にないメダル」から追加できます。'}):null)};
+ q.addEventListener('input',()=>{state.addQuery=q.value;draw()});
+ put(root,h('h1',{text:'メダルを追加'}),
+  COL.assets&&COL.loaded?[
+   h('p',{class:'muted small',text:'どの施設のメダルかを選んでから撮ります。'}),
+   h('div',{class:'filters'},q),out,
+   h('p',{},h('button',{type:'button',class:'btn',text:'候補にないメダルを追加',onclick:()=>{state.addFrom=COL.items.length;openCropper({candidate:null})}}))]:collectionStatus(),
+  COL.loaded?backupTools(h):null);
+ draw();
+}
+
+function route(hash,keep){
+ hash=hash||'';
+ // 追加の画面から保存したら、飾ったばかりのメダルを開く
+ if(current==='#add'&&hash==='#add'&&keep&&state.addFrom!=null&&COL.items.length>state.addFrom){state.addFrom=null;return route('#m-'+COL.items[0].id)}
+ if(hash!=='#add')state.addFrom=null;
+ if(!keep&&location.hash!==(hash||'#shelf'))history.pushState(null,'',hash||'#shelf');
+ current=hash;markTab(hash);
+ const m=/^#m-(.+)$/.exec(hash),z=/^#zukan-(.+)$/.exec(hash);
+ if(m)showMedal(decodeURIComponent(m[1]));
+ else if(z)showZukanPref(decodeURIComponent(z[1]));
+ else if(hash==='#zukan')showZukan();
+ else if(hash==='#add')showAdd();
+ else if(hash===''||hash==='#shelf'||hash==='#mine')showShelf();
+ else routeSearch(hash,true);
+ if(!keep)window.scrollTo(0,0);
+}
+window.addEventListener('popstate',()=>{route(location.hash,true);window.scrollTo(0,0)});
 
 route(location.hash);
 document.getElementById('built').textContent=fmt(D.generated_at);

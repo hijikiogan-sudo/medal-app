@@ -177,6 +177,88 @@ details.guide summary{cursor:pointer;color:var(--accent);font-weight:600}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media(max-width:640px){.crop-body{grid-template-columns:1fr}.medal-shelf{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+/* ===== コレクター向けの画面（棚・詳細・図鑑・下のタブ） ===== */
+/* 棚は明暗どちらの表示でも、濃い色の陳列ケースに金色のメダルが並ぶ見た目にする */
+:root{--case-bg:#16232b;--case-line:#2b3d48;--case-ink:#e9eef1;--case-muted:#a9b8c2;--gold:#d4a843;--gold-ink:#3d2c06;--tabbar:#ffffffee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--case-bg:#0d161c;--case-line:#24343e;--tabbar:#1a242cee}}
+:root[data-theme="dark"]{--case-bg:#0d161c;--case-line:#24343e;--tabbar:#1a242cee}
+
+.site-head .site-inner{padding-top:10px;padding-bottom:10px}
+body.has-tabbar{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-template-columns:repeat(4,1fr);background:var(--tabbar);border-top:1px solid var(--line);
+ padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px));-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.tabbar a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);text-decoration:none;padding:4px 0;border-radius:10px;min-height:44px;justify-content:center}
+.tabbar a[aria-current]{color:var(--accent);font-weight:700}
+.tabbar a:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+.tab-icon{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.crop-overlay{z-index:30}
+
+.shelf-top{display:flex;flex-direction:column;gap:10px;margin:14px 0 10px}
+.shelf-top h1{margin:0;font-size:24px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.stat strong{font-size:22px;color:var(--ink)}
+.stat span{font-size:11px;color:var(--muted)}
+.segs{display:flex;gap:0;margin:6px 0 10px}
+.segs .seg{flex:0 0 auto}
+
+.case{background:var(--case-bg);border:1px solid var(--case-line);border-radius:16px;padding:16px 12px;margin:12px 0;color:var(--case-ink)}
+.case-head{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;margin:0 4px 12px;color:var(--case-ink)}
+.case-head span{font-size:12px;color:var(--case-muted);font-weight:400}
+.case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:18px 12px}
+@media(min-width:640px){.case-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
+.case-item,.slot{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--case-ink);min-width:0;-webkit-tap-highlight-color:transparent}
+.case-item:focus-visible,.slot:focus-visible{outline:3px solid var(--gold);outline-offset:4px;border-radius:12px}
+.case-medal{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:50%;transition:transform .15s ease}
+.case-item:active .case-medal,.slot:active .case-medal{transform:scale(.96)}
+.case-photo{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;filter:drop-shadow(0 6px 10px #000a)}
+.case-photo.square{border-radius:10%}
+.case-photo.missing{background:var(--case-line)}
+.case-two{position:absolute;right:-2px;bottom:-2px;font-size:10px;font-weight:700;background:var(--gold);color:var(--gold-ink);border-radius:999px;padding:0 6px;line-height:18px}
+.case-name,.slot-name{font-size:12px;line-height:1.35;text-align:center;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.case-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:28px 16px}
+.case-medal.ghost{width:110px;border:2px dashed var(--case-muted);opacity:.7}
+.case-lead{margin:6px 0 0;font-size:17px;font-weight:700}
+.case-sub{margin:0;font-size:13px;color:var(--case-muted)}
+.case-empty .btn.primary{text-decoration:none;margin-top:6px}
+
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;background:var(--case-bg);border:1px solid var(--case-line);border-radius:20px;padding:24px 16px 18px;color:var(--case-ink);margin:8px 0 14px}
+.hero-medal{width:min(78vw,340px)}
+.hero-medal .flip,.hero-medal .medal-photo{max-width:none;width:100%}
+.hero-medal .medal-photo{filter:drop-shadow(0 12px 20px #000c)}
+.hero-medal .side-tag{font-size:12px;padding:1px 9px}
+.hero-hint{margin:2px 0 0;font-size:12px;color:var(--case-muted)}
+.hero-name{margin:8px 0 0;font-size:22px;color:var(--case-ink)}
+.hero-meta{margin:0;font-size:13px;color:var(--case-muted)}
+.hero-note{margin:4px 0 0;font-size:14px;max-width:32em}
+.hero-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.hero .btn{background:transparent;color:var(--case-ink);border-color:var(--case-line)}
+.hero .btn.danger{color:#f08a80;border-color:#f08a80}
+.info .state{margin:2px 0 8px}
+.info .btn{text-decoration:none;margin-top:4px}
+.ev-one{border-top:1px solid var(--line);padding-top:8px;margin-top:8px;font-size:14px}
+
+.zukan-total{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px 10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.zukan-total strong{font-size:22px}
+.zukan-total .bar,.zukan-total .muted{grid-column:1/-1}
+.bar{display:block;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--gold);border-radius:4px}
+.pref-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 14px}
+.pref-list a{display:grid;grid-template-columns:5.5em 1fr auto;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);text-decoration:none;font-size:14px}
+.pref-list a.has{border-color:var(--gold)}
+.pref-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.slots .case-medal.empty{border:2px dashed #5b6e7a;display:grid;place-items:center}
+.slots .case-medal.ended{opacity:.55}
+.slot-q{font-size:18px;color:var(--case-muted);font-weight:700}
+.slot:not(.got) .slot-name{color:var(--case-muted)}
+
+.pick-list{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.pick{all:unset;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);cursor:pointer}
+.pick:focus-visible{outline:3px solid var(--focus)}
+.pick .name{font-weight:700}
+.pick .owned{margin-top:0}
+@media (prefers-reduced-motion:reduce){.case-medal{transition:none}}
+
 /* ===== ホーム画面アプリの追加 ===== */
 body{padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
 .site-head{padding-top:env(safe-area-inset-top,0px)}
