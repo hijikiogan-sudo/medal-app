@@ -12,7 +12,7 @@ async function idbDo(store,mode,fn){
  return new Promise((res,rej)=>{const t=d.transaction(store,mode);const r=fn(t.objectStore(store));let out;if(r)r.onsuccess=()=>{out=r.result};
   t.oncomplete=()=>res(out);t.onerror=t.onabort=()=>rej(t.error)});
 }
-const FIELDS=['candidate_id','candidate_name','pref','label','acquired','note','photo','back','shape','created_at'];
+const FIELDS=['candidate_id','candidate_name','pref','label','acquired','note','photo','back','shape','created_at','status','gone_on','gone_note','updated_at'];
 const pick=o=>Object.fromEntries(Object.entries(o).filter(([k])=>FIELDS.includes(k)));
 const failCode=e=>({code:e?.name==='QuotaExceededError'?'quota_or_state':'failed',message:e?.message});
 
@@ -324,12 +324,12 @@ async function loadImage(file){
  finally{URL.revokeObjectURL(url)}
 }
 
-// 新しく登録するときは表（必須）と裏（任意）を、登録済みのメダルには裏だけを撮る
-function openCropper({candidate=null,existing=null}){
+// 新しく登録するときは表（必須）と裏（任意）を、登録済みのメダルには片面（side、ふだんは裏）だけを撮る
+function openCropper({candidate=null,existing=null,side='back'}){
  const blank=()=>({src:null,cx:0,cy:0,k:1,kFit:1,rot:0,bright:100,contrast:100,sat:100});
  const sides={front:blank(),back:blank()};
  const onlyBack=!!existing;
- let cur=onlyBack?'back':'front',st=sides[cur],shape=existing?.shape??'circle';
+ let cur=onlyBack&&side!=='front'?'back':'front',st=sides[cur],shape=existing?.shape??'circle';
  const stage=h('canvas',{class:'crop-stage','aria-label':'切り抜きの調整。ドラッグで移動、2本指で拡大・回転'});
  const msg=h('p',{class:'crop-msg',role:'status'});
  const file=h('input',{type:'file',accept:'image/*',id:'medal-photo-file',class:'visually-hidden'});
@@ -343,7 +343,7 @@ function openCropper({candidate=null,existing=null}){
  const syncSliders=()=>{zoom.value=String(st.src?Math.log2(st.k/st.kFit):0);rot.value=String(((st.rot*180/Math.PI+540)%360)-180);bright.value=String(st.bright);contrast.value=String(st.contrast);sat.value=String(st.sat)};
  // 表・裏の切替。裏は表と同じ形で切り抜く
  const sideBtns=onlyBack?[]:[['front','表'],['back','裏（任意）']].map(([k,l])=>h('button',{type:'button',class:'seg','aria-pressed':String(k===cur),text:l,onclick:()=>switchSide(k)}));
- const shapeBtns=[['circle','丸'],['square','四角']].map(([k,l])=>h('button',{type:'button',class:'seg','aria-pressed':String(k===shape),disabled:onlyBack,text:l,onclick:e=>{shape=k;shapeBtns.forEach(b=>b.setAttribute('aria-pressed',String(b===e.currentTarget)));draw();drawThumbs()}}));
+ const shapeBtns=[['circle','丸'],['square','四角']].map(([k,l])=>h('button',{type:'button',class:'seg','aria-pressed':String(k===shape),disabled:onlyBack&&(cur==='back'||!!existing.back),text:l,onclick:e=>{shape=k;shapeBtns.forEach(b=>b.setAttribute('aria-pressed',String(b===e.currentTarget)));draw();drawThumbs()}}));
  const auto=h('button',{type:'button',class:'btn',text:'メダルに自動で合わせる',onclick:()=>{if(!st.src)return;fit(true);draw();drawThumbs()}});
  const thumbs={front:h('canvas',{class:'side-thumb',width:'96',height:'96'}),back:h('canvas',{class:'side-thumb',width:'96',height:'96'})};
  const clearBack=h('button',{type:'button',class:'btn small quiet',text:'裏をやめる',hidden:true,onclick:()=>{sides.back=blank();if(cur==='back'){st=sides.back;syncSliders()}clearBack.hidden=true;draw();drawThumbs();updatePick()}});
@@ -353,7 +353,7 @@ function openCropper({candidate=null,existing=null}){
  const note=h('textarea',{id:'medal-note',rows:'2',maxlength:'300',placeholder:'メモ（任意）'});
  const save=h('button',{type:'button',class:'btn primary',text:'保存',disabled:true});
  const cancel=h('button',{type:'button',class:'btn',text:'やめる'});
- const title=existing?(existing.back?'裏の写真を撮り直す':'裏の写真を追加'):'メダルの写真を追加';
+ const title=existing?(cur==='front'?'表の写真を撮り直す':existing.back?'裏の写真を撮り直す':'裏の写真を追加'):'メダルの写真を追加';
  const panel=h('div',{class:'crop-panel',role:'dialog','aria-modal':'true','aria-label':title},
   h('div',{class:'crop-title'},h('strong',{text:title}),h('span',{class:'muted small',text:existing?(existing.label||existing.candidate_name||''):candidate?.name??''})),
   onlyBack?null:h('div',{class:'side-row'},h('div',{class:'segs'},...sideBtns),h('div',{class:'side-thumbs'},h('figure',{},thumbs.front,h('figcaption',{text:'表'})),h('figure',{},thumbs.back,h('figcaption',{text:'裏'}))),clearBack),
@@ -368,7 +368,7 @@ function openCropper({candidate=null,existing=null}){
  const close=()=>{overlay.remove();document.body.classList.remove('no-scroll')};
  cancel.addEventListener('click',close);
  overlay.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
- const updatePick=()=>{const which=cur==='front'?'表':'裏';pick.textContent=st.src?`${which}を別の写真にする`:`${which}を撮影・写真を選ぶ`;save.disabled=onlyBack?!sides.back.src:!sides.front.src};
+ const updatePick=()=>{const which=cur==='front'?'表':'裏';pick.textContent=st.src?`${which}を別の写真にする`:`${which}を撮影・写真を選ぶ`;save.disabled=onlyBack?!sides[cur].src:!sides.front.src};
  function switchSide(k){cur=k;st=sides[k];sideBtns.forEach((b,i)=>b.setAttribute('aria-pressed',String(['front','back'][i]===k)));syncSliders();updatePick();msg.textContent='';draw()}
  updatePick();pick.focus();
 
@@ -433,9 +433,9 @@ function openCropper({candidate=null,existing=null}){
   try{
    const put1=async t=>{const b=await output(t);if(!b)throw {code:'render'};const r=await COL.assets.upload(b,{type:b.type});uploaded.push(r.id);return r.id};
    if(existing){
-    const backId=await put1(sides.back);
-    await COL.db.doc('collection/'+existing.id).update({back:backId});
-    if(existing.back)try{await COL.assets.delete(existing.back)}catch{}
+    const key=cur==='front'?'photo':'back',newId=await put1(sides[cur]);
+    await COL.db.doc('collection/'+existing.id).update(key==='photo'?{photo:newId,shape}:{back:newId});
+    if(existing[key])try{await COL.assets.delete(existing[key])}catch{}
    }else{
     const photo=await put1(sides.front);const back=sides.back.src?await put1(sides.back):null;
     await COL.db.collection('collection').add({candidate_id:candidate?.id??null,candidate_name:candidate?.name??(place.value.trim()||null),pref:candidate?.pref??null,
@@ -472,19 +472,24 @@ function markTab(hash){const s=sectionOf(hash);for(const a of tabbar.querySelect
 const medalName=m=>m.label||m.candidate_name||'名前なし';
 const candOf=m=>m.candidate_id?D.candidates.find(c=>c.id===m.candidate_id)??null:null;
 const monthKey=s=>String(s??'').slice(0,7);
-const ownedIds=()=>new Set(COL.items.map(m=>m.candidate_id).filter(Boolean));
+// 手放したメダル（あげた・なくした など）は消さずに残し、棚と図鑑の数からは外す
+const GONE={given:'あげた',lost:'なくした',sold:'売った',traded:'交換した',other:'手放した'};
+const inHand=m=>!m.status||m.status==='have';
+const goneText=m=>[GONE[m.status]??'手放した',m.gone_on||null].filter(Boolean).join(' ');
+const ownedIds=()=>new Set(COL.items.filter(inHand).map(m=>m.candidate_id).filter(Boolean));
 
 // 棚に並べる1枚（タップで詳細へ）
 function shelfItem(m){
  const sq=m.shape==='square'?' square':'';
+ const gone=!inHand(m);
  const img=h('img',{src:photoUrl(m.photo),alt:'',loading:'lazy',class:'case-photo'+sq});
  img.addEventListener('error',()=>img.replaceWith(h('span',{class:'case-photo missing'+sq})));
- return h('a',{class:'case-item',href:'#m-'+m.id},h('span',{class:'case-medal'},img,m.back?h('span',{class:'case-two',title:'表と裏あり',text:'表裏'}):null),h('span',{class:'case-name',text:medalName(m)}));
+ return h('a',{class:'case-item'+(gone?' gone':''),href:'#m-'+m.id},h('span',{class:'case-medal'},img,m.back?h('span',{class:'case-two',title:'表と裏あり',text:'表裏'}):null),h('span',{class:'case-name',text:medalName(m)}),gone?h('span',{class:'gone-tag',text:GONE[m.status]??'手放した'}):null);
 }
 
 function showShelf(){
  document.title='わたしの棚｜記念メダル';
- const items=COL.items;
+ const items=COL.items.filter(inHand),gone=COL.items.filter(m=>!inHand(m));
  const now=new Date(),thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
  const prefs=new Set(items.map(m=>m.pref).filter(Boolean));
  const month=items.filter(m=>monthKey(m.acquired||m.created_at)===thisMonth).length;
@@ -506,7 +511,15 @@ function showShelf(){
   h('div',{class:'shelf-top'},h('h1',{text:'わたしの棚'}),
    h('div',{class:'stats'},...[[items.length,'枚'],[prefs.size,'都道府県'],[ownedIds().size,'施設'],[month,'今月']].map(([n,l])=>h('div',{class:'stat'},h('strong',{text:String(n)}),h('span',{text:l}))))),
   items.length?h('div',{class:'segs',role:'group','aria-label':'並べ方'},seg('new','新しい順'),seg('pref','都道府県ごと')):null,
-  body);
+  body,
+  gone.length?goneCase(gone):null);
+}
+// 手放したメダルは棚の下にたたんで置く（開いたかどうかは描き直しても保つ）
+function goneCase(list){
+ const d=h('details',{class:'case gone-case'},h('summary',{class:'case-head'},'手放したメダル',h('span',{text:list.length+'枚'})),
+  h('div',{class:'case-grid'},...[...list].sort((a,b)=>String(b.gone_on||b.updated_at||'').localeCompare(String(a.gone_on||a.updated_at||''))).map(shelfItem)));
+ d.open=!!state.goneOpen;d.addEventListener('toggle',()=>{state.goneOpen=d.open});
+ return d;
 }
 
 // ===== メダルの詳細 =====
@@ -529,7 +542,10 @@ function showMedal(id){
  document.title=medalName(m)+'｜記念メダル';
  const c=candOf(m);
  const acts=h('div',{class:'hero-actions'});
- const idle=()=>put(acts,COL.assets?[h('button',{type:'button',class:'btn',text:m.back?'裏を撮り直す':'裏を追加',onclick:()=>openCropper({existing:m})}),h('button',{type:'button',class:'btn quiet',text:'削除',onclick:arm})]:null);
+ const idle=()=>put(acts,COL.assets?[h('button',{type:'button',class:'btn',text:'情報を直す',onclick:()=>openEditor(m)}),
+  h('button',{type:'button',class:'btn',text:'表を撮り直す',onclick:()=>openCropper({existing:m,side:'front'})}),
+  h('button',{type:'button',class:'btn',text:m.back?'裏を撮り直す':'裏を追加',onclick:()=>openCropper({existing:m,side:'back'})}),
+  h('button',{type:'button',class:'btn quiet',text:'削除',onclick:arm})]:null);
  const arm=()=>put(acts,h('button',{type:'button',class:'btn danger',text:'削除する（元に戻せません）',onclick:()=>removeMedal(m,acts)}),h('button',{type:'button',class:'btn',text:'やめる',onclick:idle}));
  idle();
  const siblings=c?COL.items.filter(x=>x.candidate_id===c.id&&x.id!==m.id):[];
@@ -538,7 +554,8 @@ function showMedal(id){
   h('div',{class:'hero'},h('div',{class:'hero-medal'},medalImage(m)),m.back?h('p',{class:'hero-hint',text:'タップで裏返す'}):null,
    h('h1',{class:'hero-name',text:medalName(m)}),
    h('p',{class:'hero-meta',text:[c?.name&&c.name!==medalName(m)?c.name:(!c&&m.candidate_name&&m.candidate_name!==medalName(m)?m.candidate_name:null),prefName(m.pref)||null,m.acquired?m.acquired+' 入手':null].filter(Boolean).join('・')}),
-   m.note?h('p',{class:'hero-note',text:m.note}):null,acts),
+   m.note?h('p',{class:'hero-note',text:m.note}):null,
+   inHand(m)?null:h('p',{class:'gone-banner'},h('strong',{text:goneText(m)}),m.gone_note?'　'+m.gone_note:null),acts),
   c?evidenceSummary(c):h('p',{class:'muted small',text:'候補にない施設のメダルです。施設の調査記録とは結び付いていません。'}),
   siblings.length?h('section',{class:'case'},h('h2',{class:'case-head'},'同じ施設のメダル',h('span',{text:siblings.length+'枚'})),h('div',{class:'case-grid'},...siblings.map(shelfItem))):null);
 }
@@ -565,18 +582,18 @@ function showZukanPref(code){
  const k=code==='none'?null:code;
  const list=D.candidates.filter(c=>(c.pref??null)===k);
  document.title=prefName(k)+'の図鑑｜記念メダル';
- const owned=new Map();for(const m of COL.items)if(m.candidate_id&&!owned.has(m.candidate_id))owned.set(m.candidate_id,m);
+ const owned=new Map(),past=new Map();for(const m of COL.items)if(m.candidate_id){const box=inHand(m)?owned:past;if(!box.has(m.candidate_id))box.set(m.candidate_id,m)}
  const got=list.filter(c=>owned.has(c.id)).length;
- const slot=c=>{const m=owned.get(c.id);const t=tagOf(c);
-  if(m){const sq=m.shape==='square'?' square':'';const img=h('img',{src:photoUrl(m.photo),alt:'',loading:'lazy',class:'case-photo'+sq});img.addEventListener('error',()=>img.replaceWith(h('span',{class:'case-photo missing'+sq})));
-   return h('a',{class:'slot got',href:'#m-'+m.id},h('span',{class:'case-medal'},img),h('span',{class:'slot-name',text:c.name}))}
+ const slot=c=>{const m=owned.get(c.id)??past.get(c.id);const t=tagOf(c);
+  if(m){const was=!owned.has(c.id);const sq=m.shape==='square'?' square':'';const img=h('img',{src:photoUrl(m.photo),alt:'',loading:'lazy',class:'case-photo'+sq});img.addEventListener('error',()=>img.replaceWith(h('span',{class:'case-photo missing'+sq})));
+   return h('a',{class:'slot'+(was?' gone':' got'),href:'#m-'+m.id},h('span',{class:'case-medal'},img),h('span',{class:'slot-name',text:c.name}),was?h('span',{class:'gone-tag',text:GONE[m.status]??'手放した'}):null)}
   return h('a',{class:'slot',href:'#c-'+c.id},h('span',{class:'case-medal empty'+(t.k==='ended_confirmed'?' ended':'')},h('span',{class:'slot-q',text:t.k==='ended_confirmed'?'終了?':'?'})),h('span',{class:'slot-name',text:c.name}))};
  const sorted=[...list].sort((a,b)=>Number(owned.has(b.id))-Number(owned.has(a.id))||String(a.muni??'').localeCompare(String(b.muni??''),'ja'));
  put(root,h('p',{class:'crumb'},h('a',{href:'#zukan',text:'‹ 図鑑'})),
   h('h1',{text:prefName(k)+'の図鑑'}),
   h('div',{class:'zukan-total'},h('strong',{text:got+' / '+list.length}),h('span',{text:'集めた施設'}),bar(got,list.length)),
   h('section',{class:'case'},h('div',{class:'case-grid slots'},...sorted.map(slot))),
-  h('p',{class:'muted small',text:'点線の枠はまだ持っていない施設です。タップすると、売っている場所の記録と根拠を見られます。「終了?」は終了・休止の記録がある施設です。'}));
+  h('p',{class:'muted small',text:'点線の枠はまだ持っていない施設です。タップすると、売っている場所の記録と根拠を見られます。「終了?」は終了・休止の記録がある施設です。薄い写真は、持っていたが手放したメダルです（数には入れません）。'}));
 }
 
 // ===== 追加（どの施設のメダルかを選んで撮る） =====
@@ -586,7 +603,7 @@ function showAdd(){
  const out=h('ul',{class:'pick-list'});
  const draw=()=>{const s=(state.addQuery??'').trim();
   const hit=s?D.candidates.filter(c=>(c.name+(c.muni??'')+prefName(c.pref)).includes(s)).slice(0,40):[];
-  put(out,...hit.map(c=>h('li',{},h('button',{type:'button',class:'pick',onclick:()=>{state.addFrom=COL.items.length;openCropper({candidate:c})}},h('span',{class:'name',text:c.name}),h('span',{class:'muted small',text:[prefName(c.pref),c.muni].filter(Boolean).join(' ')}),mine(c.id).length?h('span',{class:'owned',text:'所持 '+mine(c.id).length}):null))),
+  put(out,...hit.map(c=>h('li',{},h('button',{type:'button',class:'pick',onclick:()=>{state.addFrom=COL.items.length;openCropper({candidate:c})}},h('span',{class:'name',text:c.name}),h('span',{class:'muted small',text:[prefName(c.pref),c.muni].filter(Boolean).join(' ')}),mine(c.id).filter(inHand).length?h('span',{class:'owned',text:'所持 '+mine(c.id).filter(inHand).length}):null))),
    s&&!hit.length?h('li',{class:'muted small',text:'見つかりません。下の「候補にないメダル」から追加できます。'}):null)};
  q.addEventListener('input',()=>{state.addQuery=q.value;draw()});
  put(root,h('h1',{text:'メダルを追加'}),
@@ -596,6 +613,64 @@ function showAdd(){
    h('p',{},h('button',{type:'button',class:'btn',text:'候補にないメダルを追加',onclick:()=>{state.addFrom=COL.items.length;openCropper({candidate:null})}}))]:collectionStatus(),
   COL.loaded?backupTools(h):null);
  draw();
+}
+
+// ===== メダルの情報を直す（名前・施設・入手日・メモ・手放したか） =====
+function openEditor(m){
+ let cand=candOf(m);
+ const field=(id,label,el)=>[h('label',{for:id,text:label}),Object.assign(el,{id})];
+ const label=h('input',{type:'text',maxlength:'60',value:m.label??'',placeholder:cand?'例：通常金色・図柄名':'メダルの名前'});
+ const acquired=h('input',{type:'date',value:m.acquired??''});
+ const note=h('textarea',{rows:'2',maxlength:'300'});note.value=m.note??'';
+ // 施設：候補から選ぶか、候補にない場所を書く
+ const free=h('input',{type:'text',maxlength:'60',value:cand?'':(m.candidate_name??''),placeholder:'施設・買った場所（任意）'});
+ const pref=h('select',{},h('option',{value:'',text:'都道府県（任意）'}),...PREFS.map((p,i)=>h('option',{value:String(i+1).padStart(2,'0'),text:p})));pref.value=cand?'':(m.pref??'');
+ const facBox=h('div',{class:'fac-box'});
+ const q=h('input',{type:'search',placeholder:'施設名・市町村で探す','aria-label':'施設名・市町村で探す'});
+ const hits=h('ul',{class:'pick-list'});
+ const search=h('div',{class:'fac-search',hidden:true},q,hits,
+  h('button',{type:'button',class:'btn small',text:'候補にない施設にする',onclick:()=>{cand=null;search.hidden=true;drawFac()}}));
+ q.addEventListener('input',()=>{const s=q.value.trim();const hit=s?D.candidates.filter(c=>(c.name+(c.muni??'')+prefName(c.pref)).includes(s)).slice(0,30):[];
+  put(hits,...hit.map(c=>h('li',{},h('button',{type:'button',class:'pick',onclick:()=>{cand=c;search.hidden=true;drawFac()}},h('span',{class:'name',text:c.name}),h('span',{class:'muted small',text:[prefName(c.pref),c.muni].filter(Boolean).join(' ')})))),
+   s&&!hit.length?h('li',{class:'muted small',text:'見つかりません。'}):null)});
+ const change=h('button',{type:'button',class:'btn small',text:'施設を選び直す',onclick:()=>{search.hidden=false;q.focus()}});
+ const drawFac=()=>put(facBox,cand?h('div',{class:'fac-now'},h('strong',{text:cand.name}),h('span',{class:'muted small',text:[prefName(cand.pref),cand.muni].filter(Boolean).join(' ')})):
+  h('div',{class:'fac-free'},free,pref),change);
+ drawFac();
+ // いまの状態。手放したときは日付とメモを残す
+ const status=h('select',{},...[['have','手元にある'],...Object.entries(GONE)].map(([v,t])=>h('option',{value:v,text:t})));status.value=m.status||'have';
+ const goneOn=h('input',{type:'date',value:m.gone_on??''});
+ const goneNote=h('input',{type:'text',maxlength:'100',value:m.gone_note??'',placeholder:'例：〇〇さんにあげた・交換した相手'});
+ const goneRows=h('div',{class:'fields'},...field('ed-gone-on','手放した日',goneOn),...field('ed-gone-note','そのときのこと',goneNote));
+ const syncGone=()=>{goneRows.hidden=status.value==='have'};status.addEventListener('change',syncGone);syncGone();
+ const msg=h('p',{class:'crop-msg',role:'status'});
+ const save=h('button',{type:'button',class:'btn primary',text:'保存'});
+ const cancel=h('button',{type:'button',class:'btn',text:'やめる'});
+ const panel=h('div',{class:'crop-panel edit-panel',role:'dialog','aria-modal':'true','aria-label':'メダルの情報を直す'},
+  h('div',{class:'crop-title'},h('strong',{text:'メダルの情報を直す'})),
+  h('div',{class:'fields'},...field('ed-label','名前',label)),
+  h('div',{class:'fields'},h('span',{class:'field-label',text:'施設'}),facBox),search,
+  h('div',{class:'fields'},...field('ed-acquired','入手日',acquired),...field('ed-note','メモ',note),...field('ed-status','いまの状態',status)),
+  goneRows,
+  h('p',{class:'muted small',text:'あげた・なくしたメダルも消さずに残ります。棚の下の「手放したメダル」に移り、棚と図鑑の数からは外れます。'}),
+  msg,h('div',{class:'crop-actions'},cancel,save));
+ const overlay=h('div',{class:'crop-overlay'},panel);
+ document.body.append(overlay);document.body.classList.add('no-scroll');
+ const close=()=>{overlay.remove();document.body.classList.remove('no-scroll')};
+ cancel.addEventListener('click',close);
+ overlay.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ label.focus();
+ save.addEventListener('click',async()=>{
+  const name=label.value.trim(),place=free.value.trim();
+  if(!cand&&!name){msg.textContent='候補にない施設のメダルは名前を入れてください。';label.focus();return}
+  const have=status.value==='have';
+  save.disabled=cancel.disabled=true;save.textContent='保存中…';
+  try{
+   await COL.db.doc('collection/'+m.id).update({label:name||null,candidate_id:cand?.id??null,candidate_name:cand?cand.name:(place||null),pref:cand?(cand.pref??null):(pref.value||null),
+    acquired:acquired.value||null,note:note.value.trim()||null,status:have?'have':status.value,gone_on:have?null:(goneOn.value||null),gone_note:have?null:(goneNote.value.trim()||null),updated_at:new Date().toISOString()});
+   close();
+  }catch(e){msg.textContent=errText(e);save.disabled=cancel.disabled=false;save.textContent='保存'}
+ });
 }
 
 function route(hash,keep){

@@ -259,6 +259,29 @@ body.has-tabbar{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .pick .owned{margin-top:0}
 @media (prefers-reduced-motion:reduce){.case-medal{transition:none}}
 
+/* ===== 手放したメダル・情報の編集 ===== */
+.case-item.gone .case-medal,.slot.gone .case-medal{opacity:.45;filter:grayscale(.7)}
+.gone-tag{font-size:11px;color:var(--case-muted);border:1px solid var(--case-line);border-radius:999px;padding:0 8px;line-height:18px}
+.gone-case>summary{cursor:pointer;list-style:none;margin-bottom:0}
+.gone-case>summary::-webkit-details-marker{display:none}
+.gone-case>summary::before{content:'▸ ';color:var(--case-muted)}
+.gone-case[open]>summary{margin-bottom:12px}
+.gone-case[open]>summary::before{content:'▾ '}
+.gone-banner{margin:6px 0 0;font-size:14px;color:var(--case-ink);background:var(--case-line);border-radius:8px;padding:6px 12px}
+.edit-panel{max-width:560px}
+.edit-panel .fields{grid-template-columns:6.5em minmax(0,1fr)}
+.edit-panel select{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--field-line);border-radius:8px;background:var(--field);color:var(--ink);width:100%;min-width:0}
+.edit-panel input,.edit-panel textarea{font-size:16px!important}
+.field-label{align-self:start;padding-top:6px}
+.fac-box{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.fac-now{display:flex;flex-direction:column}
+.fac-free{display:grid;gap:6px;width:100%}
+.fac-search{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.fac-search>.btn{align-self:flex-start}
+.fac-search input{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--field-line);border-radius:8px;background:var(--field);color:var(--ink)}
+.fac-search .pick-list{max-height:40vh;overflow-y:auto}
+@media(max-width:480px){.edit-panel .fields{grid-template-columns:1fr}}
+
 /* ===== ホーム画面アプリの追加 ===== */
 body{padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
 .site-head{padding-top:env(safe-area-inset-top,0px)}
