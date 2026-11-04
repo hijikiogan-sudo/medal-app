@@ -674,5 +674,10 @@ function enter(data){
  document.getElementById('foot-info').hidden=false;
  startApp(data);
 }
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+// 新しい版が入ったら一度だけ読み込み直す（最初に入るときは読み込み直さない）
+if('serviceWorker' in navigator){
+ const had=Boolean(navigator.serviceWorker.controller);let reloaded=false;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!reloaded){reloaded=true;location.reload()}});
+ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+}
 boot();
