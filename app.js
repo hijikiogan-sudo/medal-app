@@ -51,7 +51,7 @@ async function exportBackup(){
  const items=await idbDo('collection','readonly',s=>s.getAll());
  const photos={};
  for(const id of items.flatMap(r=>[r.photo,r.back]))if(id){const b=await idbDo('photos','readonly',s=>s.get(id));if(b)photos[id]=await toDataUrl(b)}
- const name='記念メダル_バックアップ_'+new Date().toISOString().slice(0,10)+'.json';
+ const name='メダリウム_バックアップ_'+new Date().toISOString().slice(0,10)+'.json';
  const file=new File([JSON.stringify({kind:BACKUP_KIND,version:1,exported_at:new Date().toISOString(),items,photos})],name,{type:'application/json'});
  // iPhoneでは共有シートから「ファイルに保存」できる。共有が使えなければダウンロードにする
  if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:name});return items.length}catch(e){if(e?.name==='AbortError')return null}}
@@ -488,7 +488,7 @@ function shelfItem(m){
 }
 
 function showShelf(){
- document.title='わたしの棚｜記念メダル';
+ document.title='わたしの棚｜メダリウム';
  const items=COL.items.filter(inHand),gone=COL.items.filter(m=>!inHand(m));
  const now=new Date(),thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
  const prefs=new Set(items.map(m=>m.pref).filter(Boolean));
@@ -539,7 +539,7 @@ function evidenceSummary(c){
 function showMedal(id){
  const m=COL.items.find(x=>x.id===id);
  if(!m){if(COL.loaded){history.replaceState(null,'','#shelf');showShelf()}else put(root,collectionStatus());return}
- document.title=medalName(m)+'｜記念メダル';
+ document.title=medalName(m)+'｜メダリウム';
  const c=candOf(m);
  const acts=h('div',{class:'hero-actions'});
  const idle=()=>put(acts,COL.assets?[h('button',{type:'button',class:'btn',text:'情報を直す',onclick:()=>openEditor(m)}),
@@ -568,7 +568,7 @@ function zukanCounts(){
 }
 const bar=(got,all)=>h('span',{class:'bar','aria-hidden':'true'},h('span',{style:'width:'+(all?Math.round(got/all*100):0)+'%'}));
 function showZukan(){
- document.title='図鑑｜記念メダル';
+ document.title='図鑑｜メダリウム';
  const by=zukanCounts();
  const got=[...by.values()].reduce((s,r)=>s+r.got,0),all=D.candidates.length;
  const done=[...by].filter(([k,r])=>k&&r.got>0).length;
@@ -581,7 +581,7 @@ function showZukan(){
 function showZukanPref(code){
  const k=code==='none'?null:code;
  const list=D.candidates.filter(c=>(c.pref??null)===k);
- document.title=prefName(k)+'の図鑑｜記念メダル';
+ document.title=prefName(k)+'の図鑑｜メダリウム';
  const owned=new Map(),past=new Map();for(const m of COL.items)if(m.candidate_id){const box=inHand(m)?owned:past;if(!box.has(m.candidate_id))box.set(m.candidate_id,m)}
  const got=list.filter(c=>owned.has(c.id)).length;
  const slot=c=>{const m=owned.get(c.id)??past.get(c.id);const t=tagOf(c);
@@ -598,7 +598,7 @@ function showZukanPref(code){
 
 // ===== 追加（どの施設のメダルかを選んで撮る） =====
 function showAdd(){
- document.title='メダルを追加｜記念メダル';
+ document.title='メダルを追加｜メダリウム';
  const q=h('input',{type:'search',placeholder:'施設名・市町村で探す','aria-label':'施設名・市町村で探す',value:state.addQuery??''});
  const out=h('ul',{class:'pick-list'});
  const draw=()=>{const s=(state.addQuery??'').trim();
