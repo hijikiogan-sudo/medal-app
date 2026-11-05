@@ -1,5 +1,5 @@
 // 画面の部品と暗号化したデータを端末に控え、電波がなくても開けるようにする
-const V='medal-e96b3adc2016';
+const V='medal-bcb20cc9b0d8';
 const SHELL=["./","index.html","app.css","app.js","data.bin","manifest.webmanifest","icons/icon-180.png","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-512.png"];
 // GitHub Pages は10分間の使い回しを許すので、控えるときは必ず取り直す（古い版を新しい版の名前で控えないため）
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
