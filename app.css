@@ -281,6 +281,9 @@ body.has-tabbar{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .fac-search input{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--field-line);border-radius:8px;background:var(--field);color:var(--ink)}
 .fac-search .pick-list{max-height:40vh;overflow-y:auto}
 @media(max-width:480px){.edit-panel .fields{grid-template-columns:1fr}}
+.info-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.report-row{margin:14px 0}
+.report-row .btn{text-decoration:none}
 
 /* ===== ホーム画面アプリの追加 ===== */
 body{padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}

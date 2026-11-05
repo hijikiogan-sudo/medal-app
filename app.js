@@ -451,6 +451,7 @@ function openCropper({candidate=null,existing=null,side='back'}){
 }
 initCollection();
 
+const REPORT_FORM={"url":"https://docs.google.com/forms/d/e/1FAIpQLSeiSBFZ85kZSw7HR4vVAVvOgAFY6mtL1wcoosPcQZd4DDZUGA/viewform","facility_entry":"entry.1508089916"};
 // ===== コレクター向けの画面（ホーム画面アプリだけ） =====
 // 主役は自分のメダルを眺めること。棚（#shelf）・メダルの詳細（#m-<id>）・図鑑（#zukan, #zukan-<県コード>）・追加（#add）。
 // 施設候補の一覧と詳細（#list, #past, #c-<id>）は「探す」として第13工程の画面をそのまま使う。
@@ -522,6 +523,13 @@ function goneCase(list){
  return d;
 }
 
+// 間違いの報告（Googleフォームを開く。施設が分かっていれば入力済みにする）
+function reportLink(c,text='間違いを報告'){
+ if(!REPORT_FORM)return null;
+ const u=new URL(REPORT_FORM.url);
+ if(c){u.searchParams.set('usp','pp_url');u.searchParams.set(REPORT_FORM.facility_entry,c.id+' '+c.name)}
+ return h('a',{class:'btn',href:u.href,target:'_blank',rel:'noopener',text});
+}
 // ===== メダルの詳細 =====
 function evidenceSummary(c){
  const t=tagOf(c);
@@ -534,7 +542,7 @@ function evidenceSummary(c){
   latest?h('div',{class:'ev-one'},h('div',{},h('span',{class:'ev-kind',text:latest.kind??'種類なし'}),' ',h('span',{class:'ev-date',text:latest.dates.map(d=>d.label+' '+d.value).join('　')})),
    latest.content?h('div',{class:'small',text:latest.content}):null,links(latest.urls)):null,
   h('p',{class:'muted small',text:'未審査：全国Excelの調査記録をそのまま表示しています。販売中・在庫を保証するものではありません。'}),
-  h('a',{class:'btn',href:'#c-'+c.id,text:'根拠をすべて見る'}));
+  h('div',{class:'info-actions'},h('a',{class:'btn',href:'#c-'+c.id,text:'根拠をすべて見る'}),reportLink(c)));
 }
 function showMedal(id){
  const m=COL.items.find(x=>x.id===id);
@@ -611,6 +619,7 @@ function showAdd(){
    h('p',{class:'muted small',text:'どの施設のメダルかを選んでから撮ります。'}),
    h('div',{class:'filters'},q),out,
    h('p',{},h('button',{type:'button',class:'btn',text:'候補にないメダルを追加',onclick:()=>{state.addFrom=COL.items.length;openCropper({candidate:null})}}))]:collectionStatus(),
+  REPORT_FORM?h('p',{},reportLink(null,'新しいメダルや施設を知らせる')):null,
   COL.loaded?backupTools(h):null);
  draw();
 }
@@ -686,7 +695,11 @@ function route(hash,keep){
  else if(hash==='#zukan')showZukan();
  else if(hash==='#add')showAdd();
  else if(hash===''||hash==='#shelf'||hash==='#mine')showShelf();
- else routeSearch(hash,true);
+ else{routeSearch(hash,true);
+  // 施設候補のページの下に報告の入口を足す
+  const cid=/^#c-(.+)$/.exec(hash),cand=cid?D.candidates.find(x=>x.id===decodeURIComponent(cid[1])):null;
+  const link=cand?reportLink(cand):null;if(link)root.append(h('p',{class:'report-row'},link,h('span',{class:'muted small',text:' 情報が違っていたら教えてください。'})));
+ }
  if(!keep)window.scrollTo(0,0);
 }
 window.addEventListener('popstate',()=>{route(location.hash,true);window.scrollTo(0,0)});
